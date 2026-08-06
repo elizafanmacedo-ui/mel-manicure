@@ -3,11 +3,11 @@
   "short_name": "Mel",
   "description": "Agenda e gestão da Mel Manicure",
   "icons": [
-    { "src": "ícone-mel-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "ícone-mel-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "ícone-mel-mascarável.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icon-mel-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-mel-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-mel-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-  "start_url": ".",
+  "start_url": "/mel-manicure/index-mel.html",
   "display": "standalone",
   "background_color": "#fff0f5",
   "theme_color": "#c2185b",
