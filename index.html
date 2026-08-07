@@ -1623,23 +1623,48 @@ const APP_VERSAO = 'Mel v1.0 · demo 30 dias · 05/08/2026';
 // ═══════════════════════════════════════
 // DEMO: expira 30 dias após esta data (AAAA-MM-DD)
 // ═══════════════════════════════════════
-const DEMO_INICIO = '2026-08-05';
-const DEMO_DIAS = 30;
-const WHATSAPP_SUPORTE = 'COLE_AQUI_WHATSAPP_DO_STUDIO_ELLY'; // ex: 5599999999999 (só números, com 55)
-function demoExpirada() {
-  const fim = new Date(DEMO_INICIO + 'T00:00:00');
-  fim.setDate(fim.getDate() + DEMO_DIAS);
-  return new Date() > fim;
-}
-function mostrarTelaExpirada() {
+// ── CONTROLE DE ACESSO — consulta Firebase do Studio Elly ──
+const SAAS_DB_URL = 'https://studio-elly-default-rtdb.firebaseio.com';
+const SAAS_CLIENTE_ID = '-OzSvrlHivnphLOOUYoV';
+const WHATSAPP_SUPORTE = 'COLE_AQUI_WHATSAPP_DO_STUDIO_ELLY';
+
+function mostrarTelaExpirada(motivo) {
   const wa = (WHATSAPP_SUPORTE && !WHATSAPP_SUPORTE.startsWith('COLE_AQUI'))
     ? '<a href="https://wa.me/' + WHATSAPP_SUPORTE + '" style="display:inline-block;margin-top:16px;background:#25D366;color:#fff;padding:12px 22px;border-radius:24px;text-decoration:none;font-weight:700">📲 Falar no WhatsApp</a>'
     : '';
   document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;background:#fff5f8;font-family:system-ui,sans-serif;color:#3a2530">' +
     '<div style="font-size:3rem;margin-bottom:12px">💅</div>' +
-    '<h1 style="font-size:1.4rem;color:#c2185b;margin-bottom:12px">Período de demonstração encerrado</h1>' +
-    '<p style="font-size:0.95rem;color:#8a5a6e;max-width:320px;line-height:1.5">Seu período de demonstração encerrou. Entre em contato para continuar usando o app.</p>' +
+    '<h1 style="font-size:1.4rem;color:#c2185b;margin-bottom:12px">Acesso suspenso</h1>' +
+    '<p style="font-size:0.95rem;color:#8a5a6e;max-width:320px;line-height:1.5">' + (motivo || 'Seu acesso foi suspenso. Entre em contato para continuar usando o app.') + '</p>' +
     wa + '</div>';
+}
+
+async function verificarAcesso() {
+  try {
+    const r = await fetch(SAAS_DB_URL + '/saas_clientes/' + SAAS_CLIENTE_ID + '.json');
+    const dados = await r.json();
+    if (!dados) { mostrarTelaExpirada('Cadastro não encontrado. Entre em contato.'); return false; }
+
+    // Verifica status explícito
+    if (dados.status === 'bloqueado') {
+      mostrarTelaExpirada('Seu acesso foi suspenso. Entre em contato para regularizar.');
+      return false;
+    }
+
+    // Verifica vencimento
+    if (dados.vencimento) {
+      const venc = new Date(dados.vencimento + 'T23:59:59');
+      if (new Date() > venc) {
+        mostrarTelaExpirada('Seu período de acesso venceu em ' + new Date(dados.vencimento + 'T12:00:00').toLocaleDateString('pt-BR') + '. Entre em contato para renovar.');
+        return false;
+      }
+    }
+
+    return true;
+  } catch (e) {
+    // Se não conseguir verificar (sem internet), deixa entrar
+    return true;
+  }
 }
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
@@ -4391,8 +4416,7 @@ document.addEventListener('click', e => {
 // ═══════════════════════════════════════
 const elVersao = document.getElementById('app-versao');
 if (elVersao) elVersao.textContent = 'Versão ' + APP_VERSAO;
-if (demoExpirada()) { mostrarTelaExpirada(); }
-else { initLogin(); }
+verificarAcesso().then(ok => { if (ok) initLogin(); });
 </script>
 </body>
 </html>
